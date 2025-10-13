@@ -19,7 +19,7 @@ class _MapScreenState extends State<MapScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final PanelController _panelController = PanelController();
 
-  // 👇 Nuevo: estado para mostrar el popup
+  bool _isPanelClosed = true;
   bool _showPopup = false;
   Offset _popupPosition = const Offset(0, 0);
   String _selectedChargerStatus = "Libre";
@@ -27,7 +27,7 @@ class _MapScreenState extends State<MapScreen> {
   void _onMarkerTap(double left, double top, String estado) {
     setState(() {
       _showPopup = true;
-      _popupPosition = Offset(left + 40, top - 60); // ajusta posición del popup
+      _popupPosition = Offset(left + 40, top - 60);
       _selectedChargerStatus = estado;
     });
   }
@@ -37,7 +37,6 @@ class _MapScreenState extends State<MapScreen> {
       _showPopup = false;
     });
   }
-  bool _isPanelClosed = true;
 
   @override
   Widget build(BuildContext context) {
@@ -46,33 +45,12 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       key: _scaffoldKey,
       drawer: _buildDrawer(),
-      body: Stack(
-        children: [
-          // Fondo del mapa
-          Positioned.fill(
-            child: Image.asset('lib/assets/images/mapa_eia.png', fit: BoxFit.cover),
-          ),
 
-          // Marcadores de cargadores interactivos
-          _buildMarker(140, 300, Colors.green, "Libre"),
-          _buildMarker(180, 300, Colors.green, "Libre"),
-          _buildMarker(220, 300, Colors.red, "Ocupado"),
-
-          // Popup dinámico
-          if (_showPopup) _buildPopup(),
-
-          // Menú lateral
-          Positioned(
-            top: 40,
-            left: 10,
-            child: IconButton(
-              icon: const Icon(Icons.menu, size: 30, color: Colors.black),
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-
+      // FAB que se oculta al mover el panel
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: AnimatedOpacity(
         opacity: _isPanelClosed ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 200),
         child: _isPanelClosed
             ? Padding(
                 padding: const EdgeInsets.only(bottom: 100),
@@ -95,6 +73,7 @@ class _MapScreenState extends State<MapScreen> {
             : null,
       ),
 
+      // Sliding panel con mapa y markers
       body: SlidingUpPanel(
         controller: _panelController,
         minHeight: 120,
@@ -104,57 +83,59 @@ class _MapScreenState extends State<MapScreen> {
         backdropTapClosesPanel: true,
         parallaxEnabled: true,
         parallaxOffset: 0.2,
-        panelBuilder: (sc) => _buildBottomPanel(sc),
 
-        onPanelSlide: (position) {
-          if (position > 0 && _isPanelClosed) {
-            setState(() => _isPanelClosed = false);
-          }
-        },
-        onPanelClosed: () {
-          setState(() => _isPanelClosed = true);
-        },
-        onPanelOpened: () {
-          setState(() => _isPanelClosed = false);
-        },
+        // Detecta estado del panel para mostrar/ocultar el FAB
+        onPanelOpened: () => setState(() => _isPanelClosed = false),
+        onPanelClosed: () => setState(() => _isPanelClosed = true),
+
+        panelBuilder: (sc) => _buildBottomPanel(sc, context),
 
         body: Stack(
           children: [
+            // Fondo del mapa
             Positioned.fill(
               child: Image.asset('lib/assets/images/mapa_eia.png', fit: BoxFit.cover),
             ),
-          ),
 
-          // Panel inferior (sin cambios)
-          SlidingUpPanel(
-            controller: _panelController,
-            minHeight: 120,
-            maxHeight: maxHeight,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            backdropEnabled: true,
-            backdropTapClosesPanel: true,
-            parallaxEnabled: true,
-            parallaxOffset: 0.2,
-            panelBuilder: (sc) => _buildBottomPanel(sc, context),
-          ),
-        ],
+            // Marcadores de cargadores
+            Marker(
+              left: 140,
+              top: 300,
+              color: Colors.green,
+              onTap: () => _onMarkerTap(140, 300, "Libre"),
+            ),
+            Marker(
+              left: 180,
+              top: 300,
+              color: Colors.green,
+              onTap: () => _onMarkerTap(180, 300, "Libre"),
+            ),
+            Marker(
+              left: 220,
+              top: 300,
+              color: Colors.red,
+              onTap: () => _onMarkerTap(220, 300, "Ocupado"),
+            ),
+
+            // Popup dinámico
+            if (_showPopup) _buildPopup(),
+
+            // Menú lateral
+            Positioned(
+              top: 40,
+              left: 10,
+              child: IconButton(
+                icon: const Icon(Icons.menu, size: 30, color: Colors.black),
+                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // 👇 Marcador que detecta taps
-  Widget _buildMarker(double left, double top, Color color, String estado) {
-    return Positioned(
-      left: left,
-      top: top,
-      child: GestureDetector(
-        onTap: () => _onMarkerTap(left, top, estado),
-        child: Marker(left: 0, top: 0, color: color),
-      ),
-    );
-  }
-
-  // 👇 Popup visual del cargador
+  // Popup visual del cargador
   Widget _buildPopup() {
     return Positioned(
       left: _popupPosition.dx,
@@ -169,12 +150,11 @@ class _MapScreenState extends State<MapScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
-              const SizedBox(height: 6),
               Text(
                 "Estado: $_selectedChargerStatus",
                 style: TextStyle(
                   color: _selectedChargerStatus == "Libre" ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
@@ -182,11 +162,11 @@ class _MapScreenState extends State<MapScreen> {
                 onPressed: _selectedChargerStatus == "Ocupado"
                     ? null
                     : () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Reserva confirmada ✅")),
-                  );
-                  _closePopup();
-                },
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Reserva confirmada ✅")),
+                        );
+                        _closePopup();
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
@@ -248,7 +228,7 @@ class _MapScreenState extends State<MapScreen> {
             const BatterySection(),
             const SizedBox(height: 80),
             const ActionButtons(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 50),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
