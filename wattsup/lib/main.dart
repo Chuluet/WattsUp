@@ -1,122 +1,260 @@
 import 'package:flutter/material.dart';
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const EVApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class EVApp extends StatelessWidget {
+  const EVApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'WattsUp',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(useMaterial3: true),
+      home: const MapScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class MapScreen extends StatefulWidget {
+  const MapScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class _MapScreenState extends State<MapScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final PanelController _panelController = PanelController();
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      key: _scaffoldKey,
+      drawer: Drawer(
+        backgroundColor: Colors.black87,
+        child: ListView(
+          padding: const EdgeInsets.only(top: 60),
+          children: [
+            ListTile(
+              leading: const Icon(Icons.person, color: Colors.white),
+              title: const Text("Ver perfil", style: TextStyle(color: Colors.white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.payment, color: Colors.white),
+              title: const Text("Pagos", style: TextStyle(color: Colors.white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.white),
+              title: const Text("Ajustes", style: TextStyle(color: Colors.white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline, color: Colors.white),
+              title: const Text("Ayuda", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final maxHeight = MediaQuery.of(context).size.height * 0.85;
+
+          // The SlidingUpPanel provides a `body` which will be the content
+          // beneath the panel. That allows the panel to slide over (cover)
+          // the background image when expanded.
+          return SlidingUpPanel(
+            controller: _panelController,
+            minHeight: 120,
+            maxHeight: maxHeight,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            // Optional: dim background when panel is open
+            backdropEnabled: true,
+            backdropTapClosesPanel: true,
+            // Parallax makes the background move slightly for depth
+            parallaxEnabled: true,
+            parallaxOffset: 0.2,
+            panelBuilder: (sc) => _buildBottomPanelWithScroll(sc),
+            body: Stack(
+              children: [
+                Positioned.fill(
+                  child: Image.asset(
+                    'lib/assets/images/mapa_eia.png',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+                Positioned(
+                  left: 140,
+                  top: 300,
+                  child: _buildMarker(Colors.green),
+                ),
+                Positioned(
+                  left: 180,
+                  top: 300,
+                  child: _buildMarker(Colors.green),
+                ),
+                Positioned(
+                  left: 220,
+                  top: 300,
+                  child: _buildMarker(Colors.brown),
+                ),
+
+                /// Menú lateral (ícono)
+                Positioned(
+                  top: 40,
+                  left: 10,
+                  child: IconButton(
+                    icon: const Icon(Icons.menu, size: 30, color: Colors.black),
+                    onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMarker(Color color) {
+    return Column(
+      children: [
+        Icon(Icons.place, color: color, size: 40),
+      ],
+    );
+  }
+
+  // Provide a panel that integrates with the SlidingUpPanel's internal
+  // scroll controller so drag gestures and inner scrolling cooperate.
+  Widget _buildBottomPanelWithScroll(ScrollController sc) {
+    return SingleChildScrollView(
+      controller: sc,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            // Small drag handle
+            Container(
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Status row (icons + labels)
+                _buildStatusRow(),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Battery section (big indicator + texts)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                _batteryIcon()
+              ],
+            ),
+            _buildBatterySection(),
+            const SizedBox(height: 30),
+            // Action buttons
+            _buildActionButtons(),
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
     );
   }
 }
+
+
+      Widget _buildStatusRow() {
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.circle, color: Colors.green, size: 30),
+            SizedBox(width: 6),
+            Text("2 disponibles", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
+            SizedBox(width: 20),
+            Icon(Icons.circle, color: Colors.red, size: 30),
+            SizedBox(width: 6),
+            Text("1 ocupado", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
+          ],
+        );
+      }
+      Widget _batteryIcon(){
+        return Row(
+          children: [
+            const Icon(Icons.battery_full, color: Colors.green, size: 30),
+            const Text("Mi carga", style: TextStyle(fontSize: 14)),
+            const SizedBox(height: 12),
+          ],
+        );
+      }
+      Widget _buildBatterySection() {
+        return Column(
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: CircularProgressIndicator(
+                    value: 0.65,
+                    strokeWidth: 14,
+                    color: Colors.green,
+                    backgroundColor: Colors.green.shade100,
+                  ),
+                ),
+                Column(
+                  children: const [
+                    Text("65%", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 6),
+                    Text("35 min restantes", style: TextStyle(color: Colors.grey, fontSize: 14)),
+                    SizedBox(height: 6),
+                    Text("Cargando", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14)),
+                  ],
+                )
+              ],
+            ),
+          ],
+        );
+      }
+
+      Widget _buildActionButtons() {
+        return Column(
+          children: [
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+                foregroundColor: Colors.black,
+                minimumSize: const Size(260, 60),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {},
+              icon: const Icon(Icons.stop, size: 24),
+              label: const Text("Detener carga", style: TextStyle(fontSize: 18)),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[100],
+                foregroundColor: Colors.red,
+                minimumSize: const Size(260, 60),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () {},
+              icon: const Icon(Icons.cancel, size: 24),
+              label: const Text("Cancelar reserva", style: TextStyle(fontSize: 18)),
+            ),
+          ],
+        );
+      }
