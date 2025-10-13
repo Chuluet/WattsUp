@@ -6,6 +6,7 @@ import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
 import 'battery_page.dart';
 import 'chat_page.dart';
+import 'payment_page.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -36,6 +37,7 @@ class _MapScreenState extends State<MapScreen> {
       _showPopup = false;
     });
   }
+  bool _isPanelClosed = true;
 
   @override
   Widget build(BuildContext context) {
@@ -66,6 +68,60 @@ class _MapScreenState extends State<MapScreen> {
             child: IconButton(
               icon: const Icon(Icons.menu, size: 30, color: Colors.black),
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: AnimatedOpacity(
+        opacity: _isPanelClosed ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 250),
+        child: _isPanelClosed
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 100),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    shape: const CircleBorder(),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PaymentPage()),
+                      );
+                    },
+                    child: const Icon(Icons.attach_money, color: Colors.white, size: 44),
+                  ),
+                ),
+              )
+            : null,
+      ),
+
+      body: SlidingUpPanel(
+        controller: _panelController,
+        minHeight: 120,
+        maxHeight: maxHeight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        backdropEnabled: true,
+        backdropTapClosesPanel: true,
+        parallaxEnabled: true,
+        parallaxOffset: 0.2,
+        panelBuilder: (sc) => _buildBottomPanel(sc),
+
+        onPanelSlide: (position) {
+          if (position > 0 && _isPanelClosed) {
+            setState(() => _isPanelClosed = false);
+          }
+        },
+        onPanelClosed: () {
+          setState(() => _isPanelClosed = true);
+        },
+        onPanelOpened: () {
+          setState(() => _isPanelClosed = false);
+        },
+
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset('lib/assets/images/mapa_eia.png', fit: BoxFit.cover),
             ),
           ),
 
