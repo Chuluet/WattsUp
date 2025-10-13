@@ -162,8 +162,9 @@ class _MapScreenState extends State<MapScreen> {
                 _batteryIcon()
               ],
             ),
+            const SizedBox(height: 40),
             _buildBatterySection(),
-            const SizedBox(height: 30),
+            const SizedBox(height: 80),
             // Action buttons
             _buildActionButtons(),
             const SizedBox(height: 40),
@@ -198,43 +199,65 @@ class _MapScreenState extends State<MapScreen> {
           ],
         );
       }
+
       Widget _buildBatterySection() {
-        return Column(
-          children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: CircularProgressIndicator(
-                    value: 0.65,
-                    strokeWidth: 14,
-                    color: Colors.green,
-                    backgroundColor: Colors.green.shade100,
-                  ),
-                ),
-                Column(
-                  children: const [
-                    Text("65%", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 6),
-                    Text("35 min restantes", style: TextStyle(color: Colors.grey, fontSize: 14)),
-                    SizedBox(height: 6),
-                    Text("Cargando", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 14)),
-                  ],
-                )
-              ],
+  return Column(
+    children: [
+      Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 260,
+            height: 260,
+            child: CircularProgressIndicator(
+              value: 0.65,
+              strokeWidth: 22,
+              color: Colors.green,
+              backgroundColor: const Color(0xFFA8E6A3),
+              strokeCap: StrokeCap.round, // 🔹 bordes redondeados
             ),
-          ],
-        );
-      }
+          ),
+          Column(
+            children: const [
+              Text(
+                "65%",
+                style: TextStyle(
+                  fontSize: 40, // 🔹 más grande
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                "35 min restantes",
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 18, // 🔹 texto más legible
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                "Cargando",
+                style: TextStyle(
+                  color:Colors.green,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20, // 🔹 más grande
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    ],
+  );
+}
+
 
       Widget _buildActionButtons() {
         return Column(
           children: [
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[300],
+                backgroundColor: const Color.fromARGB(255, 243, 242, 242),
                 foregroundColor: Colors.black,
                 minimumSize: const Size(260, 60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -246,7 +269,7 @@ class _MapScreenState extends State<MapScreen> {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red[100],
+                backgroundColor: const Color.fromARGB(255, 243, 242, 242),
                 foregroundColor: Colors.red,
                 minimumSize: const Size(260, 60),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
