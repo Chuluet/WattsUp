@@ -5,6 +5,7 @@ import '../widgets/battery_icon.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
 import 'battery_page.dart';
+import 'payment_page.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -17,6 +18,8 @@ class _MapScreenState extends State<MapScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final PanelController _panelController = PanelController();
 
+  bool _isPanelClosed = true;
+
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.85;
@@ -24,6 +27,33 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       key: _scaffoldKey,
       drawer: _buildDrawer(),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: AnimatedOpacity(
+        opacity: _isPanelClosed ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 250),
+        child: _isPanelClosed
+            ? Padding(
+                padding: const EdgeInsets.only(bottom: 100),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    shape: const CircleBorder(),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PaymentPage()),
+                      );
+                    },
+                    child: const Icon(Icons.attach_money, color: Colors.white, size: 44),
+                  ),
+                ),
+              )
+            : null,
+      ),
+
       body: SlidingUpPanel(
         controller: _panelController,
         minHeight: 120,
@@ -34,6 +64,19 @@ class _MapScreenState extends State<MapScreen> {
         parallaxEnabled: true,
         parallaxOffset: 0.2,
         panelBuilder: (sc) => _buildBottomPanel(sc),
+
+        onPanelSlide: (position) {
+          if (position > 0 && _isPanelClosed) {
+            setState(() => _isPanelClosed = false);
+          }
+        },
+        onPanelClosed: () {
+          setState(() => _isPanelClosed = true);
+        },
+        onPanelOpened: () {
+          setState(() => _isPanelClosed = false);
+        },
+
         body: Stack(
           children: [
             Positioned.fill(
