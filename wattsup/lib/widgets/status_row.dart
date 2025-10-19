@@ -1,20 +1,45 @@
 import 'package:flutter/material.dart';
 
 class StatusRow extends StatelessWidget {
-  const StatusRow({super.key});
+  final int available;
+  final int occupied;
+
+  const StatusRow({
+    super.key,
+    this.available = 0,
+    this.occupied = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
-        Icon(Icons.circle, color: Colors.green, size: 30),
-        SizedBox(width: 6),
-        Text("2 disponibles", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
-        SizedBox(width: 20),
-        Icon(Icons.circle, color: Colors.red, size: 30),
-        SizedBox(width: 6),
-        Text("1 ocupado", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28)),
+      children: [
+        _buildStatusIndicator(
+          color: Colors.green,
+          label: "$available disponibles",
+        ),
+        const SizedBox(width: 20),
+        _buildStatusIndicator(
+          color: Colors.red,
+          label: "$occupied ocupado${occupied != 1 ? 's' : ''}",
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusIndicator({required Color color, required String label}) {
+    return Row(
+      children: [
+        Icon(Icons.circle, color: color, size: 30), // tamaño original
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 28, // tamaño original
+          ),
+        ),
       ],
     );
   }
