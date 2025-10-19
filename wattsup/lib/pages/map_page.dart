@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import '../widgets/status_row.dart';
-import '../widgets/battery_icon.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
-import 'battery_page.dart';
+import '../widgets/battery_section.dart'; // <-- Importamos el círculo
 import 'chat_page.dart';
 import 'payment_page.dart';
+import 'reservation_page.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -24,6 +24,12 @@ class _MapScreenState extends State<MapScreen> {
   Offset _popupPosition = const Offset(0, 0);
   String _selectedChargerStatus = "Libre";
 
+  // Variables dinámicas
+  int availableChargers = 2;
+  int occupiedChargers = 1;
+  bool hasActiveReservation = false;
+  double batteryLevel = 0.65;
+
   void _onMarkerTap(double left, double top, String estado) {
     setState(() {
       _showPopup = true;
@@ -38,6 +44,50 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  void _onReservationCompleted() {
+    setState(() {
+      hasActiveReservation = true;
+      batteryLevel = 0.65;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reserva activa ✅')),
+    );
+  }
+
+  void _stopCharging() {
+    setState(() {
+      hasActiveReservation = false;
+      batteryLevel = 0.0;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Carga detenida 🔌')),
+    );
+  }
+
+  void _cancelReservation() {
+    setState(() {
+      hasActiveReservation = false;
+      batteryLevel = 0.0;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reserva cancelada ❌')),
+    );
+  }
+
+  Future<void> _goToReservationPage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReservationPage(
+          chargerStatus: "Libre",
+          onReservationCompleted: _onReservationCompleted,
+        ),
+      ),
+    );
+
+    if (result == true) _onReservationCompleted();
+  }
+
   @override
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.85;
@@ -45,35 +95,31 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       key: _scaffoldKey,
       drawer: _buildDrawer(),
-
-      // FAB que se oculta al mover el panel
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: AnimatedOpacity(
         opacity: _isPanelClosed ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 200),
         child: _isPanelClosed
             ? Padding(
-                padding: const EdgeInsets.only(bottom: 100),
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: FloatingActionButton(
-                    backgroundColor: Colors.green,
-                    shape: const CircleBorder(),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PaymentPage()),
-                      );
-                    },
-                    child: const Icon(Icons.attach_money, color: Colors.white, size: 44),
-                  ),
-                ),
-              )
+          padding: const EdgeInsets.only(bottom: 100),
+          child: SizedBox(
+            width: 80,
+            height: 80,
+            child: FloatingActionButton(
+              backgroundColor: Colors.green,
+              shape: const CircleBorder(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PaymentPage()),
+                );
+              },
+              child: const Icon(Icons.attach_money, color: Colors.white, size: 44),
+            ),
+          ),
+        )
             : null,
       ),
-
-      // Sliding panel con mapa y markers
       body: SlidingUpPanel(
         controller: _panelController,
         minHeight: 120,
@@ -83,21 +129,14 @@ class _MapScreenState extends State<MapScreen> {
         backdropTapClosesPanel: true,
         parallaxEnabled: true,
         parallaxOffset: 0.2,
-
-        // Detecta estado del panel para mostrar/ocultar el FAB
         onPanelOpened: () => setState(() => _isPanelClosed = false),
         onPanelClosed: () => setState(() => _isPanelClosed = true),
-
         panelBuilder: (sc) => _buildBottomPanel(sc, context),
-
         body: Stack(
           children: [
-            // Fondo del mapa
             Positioned.fill(
               child: Image.asset('lib/assets/images/mapa_eia.png', fit: BoxFit.cover),
             ),
-
-            // Marcadores de cargadores
             Marker(
               left: 140,
               top: 300,
@@ -116,11 +155,7 @@ class _MapScreenState extends State<MapScreen> {
               color: Colors.red,
               onTap: () => _onMarkerTap(220, 300, "Ocupado"),
             ),
-
-            // Popup dinámico
             if (_showPopup) _buildPopup(),
-
-            // Menú lateral
             Positioned(
               top: 40,
               left: 10,
@@ -135,7 +170,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  // Popup visual del cargador
   Widget _buildPopup() {
     return Positioned(
       left: _popupPosition.dx,
@@ -162,11 +196,9 @@ class _MapScreenState extends State<MapScreen> {
                 onPressed: _selectedChargerStatus == "Ocupado"
                     ? null
                     : () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Reserva confirmada ✅")),
-                        );
-                        _closePopup();
-                      },
+                  _goToReservationPage();
+                  _closePopup();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
@@ -221,13 +253,25 @@ class _MapScreenState extends State<MapScreen> {
             const SizedBox(height: 8),
             const _PanelHandle(),
             const SizedBox(height: 12),
-            const StatusRow(),
+            StatusRow(
+              available: availableChargers,
+              occupied: occupiedChargers,
+            ),
             const SizedBox(height: 20),
-            const BatteryIcon(),
+
+            // Círculo de carga
+            BatterySection(
+              batteryLevel: batteryLevel,
+              isActive: hasActiveReservation,
+            ),
+
             const SizedBox(height: 40),
-            const BatterySection(),
-            const SizedBox(height: 80),
-            const ActionButtons(),
+            ActionButtons(
+              hasActiveReservation: hasActiveReservation,
+              onStop: hasActiveReservation ? _stopCharging : null,
+
+              onReserve: _goToReservationPage,
+            ),
             const SizedBox(height: 50),
             ElevatedButton.icon(
               onPressed: () {
