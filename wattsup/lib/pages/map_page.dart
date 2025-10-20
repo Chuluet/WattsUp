@@ -95,6 +95,13 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       key: _scaffoldKey,
       drawer: _buildDrawer(),
+      appBar: AppBar(
+        title: const Text('WattsUp', style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: false,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: AnimatedOpacity(
         opacity: _isPanelClosed ? 1.0 : 0.0,
@@ -156,14 +163,8 @@ class _MapScreenState extends State<MapScreen> {
               onTap: () => _onMarkerTap(220, 300, "Ocupado"),
             ),
             if (_showPopup) _buildPopup(),
-            Positioned(
-              top: 40,
-              left: 10,
-              child: IconButton(
-                icon: const Icon(Icons.menu, size: 30, color: Colors.black),
-                onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-              ),
-            ),
+            // The AppBar provides the drawer menu button, so the manual positioned
+            // IconButton was removed to avoid duplicate menu buttons.
           ],
         ),
       ),
