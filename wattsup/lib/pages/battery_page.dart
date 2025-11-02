@@ -18,76 +18,84 @@ class _BatteryPageState extends State<BatteryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            // Handle superior
-            Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Estado de cargadores
-            const StatusRow(
-              available: 2,
-              occupied: 1,
-            ),
-            const SizedBox(height: 24),
-
-            // Icono de batería pequeño (estética original)
-            BatteryIcon(batteryLevel: batteryLevel),
-            const SizedBox(height: 16),
-
-            // Indicador circular grande
-            BatterySection(
-              batteryLevel: batteryLevel,
-              isActive: hasActiveReservation,
-            ),
-            const SizedBox(height: 32),
-
-            // Botones de acción
-            ActionButtons(
-              hasActiveReservation: hasActiveReservation,
-              onStop: hasActiveReservation ? _stopCharging : null,
-              onReserve: _goToReservationPage,
-            ),
-            const SizedBox(height: 32),
-
-            // Botón para abrir chat
-            Divider(
-              color: Colors.grey[400],
-              thickness: 1,
-              height: 40,
-            ),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green[200],
-                foregroundColor: Colors.green[900],
-                minimumSize: const Size(260, 60),
-                shape: RoundedRectangleBorder(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Handle superior
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[400],
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ChatPage()),
-                );
-              },
-              icon: const Icon(Icons.chat_bubble_outline, size: 24),
-              label: const Text(
-                "Abrir chat",
-                style: TextStyle(fontSize: 18),
+              const SizedBox(height: 60),
+
+              // Estado de cargadores
+              const StatusRow(
+                available: 2,
+                occupied: 1,
               ),
-            ),
-          ],
+              const SizedBox(height: 50),
+
+              // Icono de batería pequeño
+              BatteryIcon(batteryLevel: batteryLevel),
+              const SizedBox(height: 30),
+
+              // Indicador circular grande
+              BatterySection(
+                batteryLevel: batteryLevel,
+                isActive: hasActiveReservation,
+              ),
+              const SizedBox(height: 60),
+
+              // Botones de acción
+              ActionButtons(
+                hasActiveReservation: hasActiveReservation,
+                onStop: hasActiveReservation ? _stopCharging : null,
+                onReserve: _goToReservationPage,
+              ),
+              const SizedBox(height: 50),
+
+              // Separador visual
+              Divider(
+                color: Colors.grey[400],
+                thickness: 1,
+                height: 80,
+              ),
+
+              // Botón para abrir chat
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[200],
+                  foregroundColor: Colors.green[900],
+                  minimumSize: const Size(280, 65),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const ChatPage()),
+                  );
+                },
+                icon: const Icon(Icons.chat_bubble_outline, size: 26),
+                label: const Text(
+                  "Abrir chat",
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w500),
+                ),
+              ),
+              const SizedBox(height: 80),
+            ],
+          ),
         ),
       ),
     );
@@ -100,16 +108,6 @@ class _BatteryPageState extends State<BatteryPage> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Carga detenida 🔌')),
-    );
-  }
-
-  void _cancelReservation() {
-    setState(() {
-      hasActiveReservation = false;
-      batteryLevel = 0.0;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reserva cancelada ❌')),
     );
   }
 

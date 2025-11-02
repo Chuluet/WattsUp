@@ -3,10 +3,11 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import '../widgets/status_row.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
-import '../widgets/battery_section.dart'; // <-- Importamos el círculo
+import '../widgets/battery_section.dart'; // <-- Círculo de carga
 import 'chat_page.dart';
 import 'payment_page.dart';
 import 'reservation_page.dart';
+import 'profile_page.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -24,7 +25,6 @@ class _MapScreenState extends State<MapScreen> {
   Offset _popupPosition = const Offset(0, 0);
   String _selectedChargerStatus = "Libre";
 
-  // Variables dinámicas
   int availableChargers = 2;
   int occupiedChargers = 1;
   bool hasActiveReservation = false;
@@ -49,9 +49,9 @@ class _MapScreenState extends State<MapScreen> {
       hasActiveReservation = true;
       batteryLevel = 0.65;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reserva activa ✅')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Reserva activa ✅')));
   }
 
   void _stopCharging() {
@@ -59,19 +59,9 @@ class _MapScreenState extends State<MapScreen> {
       hasActiveReservation = false;
       batteryLevel = 0.0;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Carga detenida 🔌')),
-    );
-  }
-
-  void _cancelReservation() {
-    setState(() {
-      hasActiveReservation = false;
-      batteryLevel = 0.0;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Reserva cancelada ❌')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Carga detenida 🔌')));
   }
 
   Future<void> _goToReservationPage() async {
@@ -96,7 +86,10 @@ class _MapScreenState extends State<MapScreen> {
       key: _scaffoldKey,
       drawer: _buildDrawer(),
       appBar: AppBar(
-        title: const Text('WattsUp', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'WattsUp',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -108,23 +101,29 @@ class _MapScreenState extends State<MapScreen> {
         duration: const Duration(milliseconds: 200),
         child: _isPanelClosed
             ? Padding(
-          padding: const EdgeInsets.only(bottom: 100),
-          child: SizedBox(
-            width: 80,
-            height: 80,
-            child: FloatingActionButton(
-              backgroundColor: Colors.green,
-              shape: const CircleBorder(),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PaymentPage()),
-                );
-              },
-              child: const Icon(Icons.attach_money, color: Colors.white, size: 44),
-            ),
-          ),
-        )
+                padding: const EdgeInsets.only(bottom: 100),
+                child: SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    shape: const CircleBorder(),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PaymentPage(),
+                        ),
+                      );
+                    },
+                    child: const Icon(
+                      Icons.attach_money,
+                      color: Colors.white,
+                      size: 44,
+                    ),
+                  ),
+                ),
+              )
             : null,
       ),
       body: SlidingUpPanel(
@@ -142,7 +141,10 @@ class _MapScreenState extends State<MapScreen> {
         body: Stack(
           children: [
             Positioned.fill(
-              child: Image.asset('lib/assets/images/mapa_eia.png', fit: BoxFit.cover),
+              child: Image.asset(
+                'lib/assets/images/mapa_eia.png',
+                fit: BoxFit.cover,
+              ),
             ),
             Marker(
               left: 140,
@@ -163,8 +165,6 @@ class _MapScreenState extends State<MapScreen> {
               onTap: () => _onMarkerTap(220, 300, "Ocupado"),
             ),
             if (_showPopup) _buildPopup(),
-            // The AppBar provides the drawer menu button, so the manual positioned
-            // IconButton was removed to avoid duplicate menu buttons.
           ],
         ),
       ),
@@ -188,7 +188,9 @@ class _MapScreenState extends State<MapScreen> {
               Text(
                 "Estado: $_selectedChargerStatus",
                 style: TextStyle(
-                  color: _selectedChargerStatus == "Libre" ? Colors.green : Colors.red,
+                  color: _selectedChargerStatus == "Libre"
+                      ? Colors.green
+                      : Colors.red,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -197,19 +199,16 @@ class _MapScreenState extends State<MapScreen> {
                 onPressed: _selectedChargerStatus == "Ocupado"
                     ? null
                     : () {
-                  _goToReservationPage();
-                  _closePopup();
-                },
+                        _goToReservationPage();
+                        _closePopup();
+                      },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2ECC71),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text("Reservar"),
               ),
-              TextButton(
-                onPressed: _closePopup,
-                child: const Text("Cerrar"),
-              ),
+              TextButton(onPressed: _closePopup, child: const Text("Cerrar")),
             ],
           ),
         ),
@@ -222,20 +221,30 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: Colors.black87,
       child: ListView(
         padding: const EdgeInsets.only(top: 60),
-        children: const [
+        children: [
           ListTile(
-            leading: Icon(Icons.person, color: Colors.white),
-            title: Text("Ver perfil", style: TextStyle(color: Colors.white)),
+            leading: const Icon(Icons.person, color: Colors.white),
+            title: const Text(
+              "Ver perfil",
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
           ),
-          ListTile(
+
+          const ListTile(
             leading: Icon(Icons.payment, color: Colors.white),
             title: Text("Pagos", style: TextStyle(color: Colors.white)),
           ),
-          ListTile(
+          const ListTile(
             leading: Icon(Icons.settings, color: Colors.white),
             title: Text("Ajustes", style: TextStyle(color: Colors.white)),
           ),
-          ListTile(
+          const ListTile(
             leading: Icon(Icons.help_outline, color: Colors.white),
             title: Text("Ayuda", style: TextStyle(color: Colors.white)),
           ),
@@ -244,36 +253,38 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  /// --- PANEL INFERIOR ---
   Widget _buildBottomPanel(ScrollController sc, BuildContext context) {
     return SingleChildScrollView(
       controller: sc,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 8),
             const _PanelHandle(),
-            const SizedBox(height: 12),
-            StatusRow(
-              available: availableChargers,
-              occupied: occupiedChargers,
-            ),
-            const SizedBox(height: 20),
+            const SizedBox(
+              height: 40,
+            ), // más espacio entre el handle y el status
 
-            // Círculo de carga
+            StatusRow(available: availableChargers, occupied: occupiedChargers),
+            const SizedBox(
+              height: 60,
+            ), // más espacio entre el status y el círculo
+
             BatterySection(
               batteryLevel: batteryLevel,
               isActive: hasActiveReservation,
             ),
+            const SizedBox(height: 50),
 
-            const SizedBox(height: 40),
             ActionButtons(
               hasActiveReservation: hasActiveReservation,
               onStop: hasActiveReservation ? _stopCharging : null,
-
               onReserve: _goToReservationPage,
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 60),
+
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -281,19 +292,22 @@ class _MapScreenState extends State<MapScreen> {
                   MaterialPageRoute(builder: (context) => const ChatPage()),
                 );
               },
-              icon: const Icon(Icons.chat_bubble_outline),
-              label: const Text("Abrir chat"),
+              icon: const Icon(Icons.chat_bubble_outline, size: 24),
+              label: const Text("Abrir chat", style: TextStyle(fontSize: 18)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF25D366),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
                 elevation: 4,
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 60),
           ],
         ),
       ),

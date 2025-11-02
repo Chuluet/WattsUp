@@ -17,12 +17,12 @@ class StatusRow extends StatelessWidget {
       children: [
         _buildStatusIndicator(
           color: Colors.green,
-          label: "$available disponibles",
+          label: "$available Disponibles",
         ),
         const SizedBox(width: 20),
         _buildStatusIndicator(
           color: Colors.red,
-          label: "$occupied ocupado${occupied != 1 ? 's' : ''}",
+          label: "$occupied Ocupado${occupied != 1 ? 's' : ''}",
         ),
       ],
     );
@@ -31,13 +31,13 @@ class StatusRow extends StatelessWidget {
   Widget _buildStatusIndicator({required Color color, required String label}) {
     return Row(
       children: [
-        Icon(Icons.circle, color: color, size: 30), // tamaño original
+        Icon(Icons.circle, color: color, size: 26), // tamaño original
         const SizedBox(width: 6),
         Text(
           label,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 28, // tamaño original
+            fontSize: 24, // tamaño original
           ),
         ),
       ],
