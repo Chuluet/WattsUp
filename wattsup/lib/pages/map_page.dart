@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:wattsup/pages/config_page.dart';
+import 'package:wattsup/pages/help_page.dart';
 import '../widgets/status_row.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
@@ -235,18 +237,31 @@ class _MapScreenState extends State<MapScreen> {
               );
             },
           ),
-
-          const ListTile(
-            leading: Icon(Icons.payment, color: Colors.white),
-            title: Text("Pagos", style: TextStyle(color: Colors.white)),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.white),
+            title: const Text(
+              "Configuración",
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ConfigPage()),
+              );
+            },
           ),
-          const ListTile(
-            leading: Icon(Icons.settings, color: Colors.white),
-            title: Text("Ajustes", style: TextStyle(color: Colors.white)),
-          ),
-          const ListTile(
-            leading: Icon(Icons.help_outline, color: Colors.white),
-            title: Text("Ayuda", style: TextStyle(color: Colors.white)),
+          ListTile(
+            leading: const Icon(Icons.help_outline, color: Colors.white),
+            title: const Text(
+              "Ayuda",
+              style: TextStyle(color: Colors.white),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpPage()),
+              );
+            },
           ),
         ],
       ),
