@@ -1,6 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:wattsup/pages/payment_page.dart';
 import 'map_page.dart';
 
 class CarnetPaymentPage extends StatefulWidget {
@@ -140,11 +139,9 @@ class _CarnetPaymentPageState extends State<CarnetPaymentPage> {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const PaymentPage()),
-                        (route) => false,
-                      );
+                       Navigator.pop(
+                    context
+                  );
                     },
                     child: const Text(
                       "Cancelar pago",

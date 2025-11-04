@@ -31,6 +31,7 @@ dependencies:
   flutter_osm_plugin: ^1.4.2  # o la versión más reciente
   flutter:
     sdk: flutter
+  vector_math: ^2.1.4
   awesome_notifications: ^0.10.1
   google_maps_flutter: ^2.5.0
   sliding_up_panel: ^2.0.0+1
