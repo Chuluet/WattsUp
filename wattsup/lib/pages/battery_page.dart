@@ -13,8 +13,13 @@ class BatteryPage extends StatefulWidget {
 }
 
 class _BatteryPageState extends State<BatteryPage> {
-  bool hasActiveReservation = false; // Simula si hay carga activa
-  double batteryLevel = 0.0; // 0.0 a 1.0
+  bool hasActiveReservation = false;
+  bool inQueue = false;
+  int queuePosition = 0;
+  int usersInQueue = 0;
+  double batteryLevel = 0.0;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +58,12 @@ class _BatteryPageState extends State<BatteryPage> {
               BatterySection(
                 batteryLevel: batteryLevel,
                 isActive: hasActiveReservation,
+                isWaiting: inQueue,
+                queuePosition: queuePosition,
+                usersInQueue: usersInQueue,
+                remainingMinutes: queuePosition * 15,
               ),
+
               const SizedBox(height: 60),
 
               // Botones de acción
@@ -64,7 +74,10 @@ class _BatteryPageState extends State<BatteryPage> {
               ),
               const SizedBox(height: 50),
 
-              // Separador visual
+              // Nueva sección: FILA VIRTUAL
+              _buildQueueSection(),
+
+              const SizedBox(height: 50),
               Divider(
                 color: Colors.grey[400],
                 thickness: 1,
@@ -99,6 +112,102 @@ class _BatteryPageState extends State<BatteryPage> {
         ),
       ),
     );
+  }
+
+  /// --- SECCIÓN DE FILA VIRTUAL ---
+  Widget _buildQueueSection() {
+    return Column(
+      children: [
+        Text(
+          inQueue
+              ? "Estás en la fila (posición $queuePosition)"
+              : "No estás en la fila",
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "Usuarios en espera: $usersInQueue",
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          icon: Icon(inQueue ? Icons.exit_to_app : Icons.hourglass_bottom),
+          label: Text(inQueue ? "Salir de la fila" : "Unirse a la fila"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: inQueue ? Colors.redAccent : Colors.green,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+            minimumSize: const Size(250, 50),
+          ),
+          onPressed: _toggleQueue,
+        ),
+      ],
+    );
+  }
+
+  /// --- LÓGICA DE FILA ---
+  void _toggleQueue() {
+    if (!inQueue) {
+      setState(() {
+        inQueue = true;
+        usersInQueue++;
+        queuePosition = usersInQueue;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Te uniste a la fila. Posición: $queuePosition'),
+        ),
+      );
+
+      // Simulación: si eres el primero, comienzas a cargar
+      if (queuePosition == 1) {
+        Future.delayed(const Duration(seconds: 3), _startCharging);
+      }
+    } else {
+      setState(() {
+        inQueue = false;
+        usersInQueue--;
+        queuePosition = 0;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saliste de la fila')),
+      );
+    }
+  }
+
+  void _startCharging() {
+    if (!mounted || !inQueue) return;
+
+    setState(() {
+      hasActiveReservation = true;
+      inQueue = false;
+      queuePosition = 0;
+      usersInQueue = (usersInQueue > 0) ? usersInQueue - 1 : 0;
+      batteryLevel = 0.2;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Comenzando carga ⚡')),
+    );
+
+    _simulateCharging();
+  }
+
+  void _simulateCharging() async {
+    while (batteryLevel < 1.0 && hasActiveReservation && mounted) {
+      await Future.delayed(const Duration(seconds: 2));
+      setState(() {
+        batteryLevel = (batteryLevel + 0.1).clamp(0.0, 1.0);
+      });
+    }
+
+    if (mounted && hasActiveReservation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Carga completada ✅')),
+      );
+      setState(() => hasActiveReservation = false);
+    }
   }
 
   void _stopCharging() {

@@ -10,6 +10,7 @@ import 'chat_page.dart';
 import 'payment_page.dart';
 import 'reservation_page.dart';
 import 'profile_page.dart';
+import 'queue_page.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -33,8 +34,20 @@ class _MapScreenState extends State<MapScreen> {
   int availableChargers = 2;
   int occupiedChargers = 1;
   bool hasActiveReservation = false;
+  bool isInQueue = false;
   double batteryLevel = 0.65;
 
+  bool inQueue = false;
+  int queuePosition = 0;
+  int usersInQueue = 0;
+
+
+  List<String> queue = [];
+  String currentUser = "Usuario1";
+
+  // ---------- Lógica principal ----------
+
+  void _onMarkerTap(double left, double top, String estado) {
   final double _minScale = 0.5;
   final double _maxScale = 3.0;
 
@@ -75,6 +88,7 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
+  void _closePopup() => setState(() => _showPopup = false);
   void _onMarkerTap(double left, double top, String estado) {
     // Obtener el RenderBox del Stack que contiene los marcadores
     final RenderBox? markersBox = _markersStackKey.currentContext?.findRenderObject() as RenderBox?;
@@ -109,8 +123,12 @@ class _MapScreenState extends State<MapScreen> {
   void _onReservationCompleted() {
     setState(() {
       hasActiveReservation = true;
+      isInQueue = false; // sale de la fila si tenía una
       batteryLevel = 0.65;
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Reserva activa ✅')),
+    );
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva activa ✅')));
   }
 
@@ -118,7 +136,16 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       hasActiveReservation = false;
       batteryLevel = 0.0;
+      if (queue.isNotEmpty) {
+        final nextUser = queue.removeAt(0);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$nextUser ahora puede cargar ⚡')),
+        );
+      }
     });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Carga detenida 🔌')),
+    );
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Carga detenida 🔌')));
   }
 
@@ -132,9 +159,50 @@ class _MapScreenState extends State<MapScreen> {
         ),
       ),
     );
-
     if (result == true) _onReservationCompleted();
   }
+
+  Future<void> _goToQueuePage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QueuePage(
+          queueLength: queue.length > 0 ? queue.length : 3,
+          alreadyInQueue: isInQueue,
+          hasActiveReservation: hasActiveReservation,
+          onJoinQueue: _joinQueue,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      setState(() => isInQueue = true);
+    }
+  }
+
+  void _joinQueue() {
+    if (!queue.contains(currentUser)) {
+      setState(() {
+        queue.add(currentUser);
+        isInQueue = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Te uniste a la fila virtual 🕒')),
+      );
+    }
+  }
+
+  void _leaveQueue() {
+    setState(() {
+      queue.remove(currentUser);
+      isInQueue = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Saliste de la fila')),
+    );
+  }
+
+  // ---------- INTERFAZ ----------
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +216,6 @@ class _MapScreenState extends State<MapScreen> {
           'WattsUp',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -161,6 +228,79 @@ class _MapScreenState extends State<MapScreen> {
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _isPanelClosed
+          ? Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 💬 Botón de chat restaurado
+            FloatingActionButton(
+              heroTag: 'chat',
+              backgroundColor: Colors.blueAccent,
+              shape: const CircleBorder(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ChatPage()),
+                );
+              },
+              child: const Icon(Icons.chat, size: 30),
+            ),
+            const SizedBox(height: 16),
+            FloatingActionButton(
+              heroTag: 'payment',
+              backgroundColor: Colors.green,
+              shape: const CircleBorder(),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const PaymentPage()),
+                );
+              },
+              child: const Icon(Icons.attach_money, size: 44),
+            ),
+          ],
+        ),
+      )
+          : null,
+      body: SlidingUpPanel(
+        controller: _panelController,
+        minHeight: 120,
+        maxHeight: maxHeight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        backdropEnabled: true,
+        onPanelOpened: () => setState(() => _isPanelClosed = false),
+        onPanelClosed: () => setState(() => _isPanelClosed = true),
+        panelBuilder: (sc) => _buildBottomPanel(sc),
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset('lib/assets/images/mapa_eia.png',
+                  fit: BoxFit.cover),
+            ),
+            Marker(
+              left: 140,
+              top: 300,
+              color: Colors.green,
+              onTap: () => _onMarkerTap(140, 300, "Libre"),
+            ),
+            Marker(
+              left: 180,
+              top: 300,
+              color: Colors.green,
+              onTap: () => _onMarkerTap(180, 300, "Libre"),
+            ),
+            Marker(
+              left: 220,
+              top: 300,
+              color: Colors.red,
+              onTap: () => _onMarkerTap(220, 300, "Ocupado"),
+            ),
+            if (_showPopup) _buildPopup(),
+          ],
       floatingActionButton: AnimatedOpacity(
         opacity: _isPanelClosed ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 200),
@@ -251,6 +391,45 @@ class _MapScreenState extends State<MapScreen> {
     return Positioned(
       left: _popupPosition.dx,
       top: _popupPosition.dy,
+      child: Material(
+        elevation: 8,
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Estado: $_selectedChargerStatus",
+                style: TextStyle(
+                  color: _selectedChargerStatus == "Libre"
+                      ? Colors.green
+                      : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _selectedChargerStatus == "Ocupado"
+                    ? _goToQueuePage
+                    : (!isInQueue && !hasActiveReservation
+                    ? _goToReservationPage
+                    : null),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(_selectedChargerStatus == "Ocupado"
+                    ? "Ver fila"
+                    : "Reservar"),
+              ),
+              TextButton(
+                onPressed: _closePopup,
+                child: const Text("Cerrar"),
+              ),
+            ],
       child: GestureDetector(
         onTap: () {}, // Evita que el tap se propague al GestureDetector padre
         child: Material(
@@ -303,10 +482,8 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           ListTile(
             leading: const Icon(Icons.person, color: Colors.white),
-            title: const Text(
-              "Ver perfil",
-              style: TextStyle(color: Colors.white),
-            ),
+            title:
+            const Text("Ver perfil", style: TextStyle(color: Colors.white)),
             onTap: () {
               Navigator.push(
                 context,
@@ -314,6 +491,14 @@ class _MapScreenState extends State<MapScreen> {
               );
             },
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomPanel(ScrollController sc) {
+    final int estimatedMinutes = (queue.indexOf(currentUser) + 1) * 15;
+
           ListTile(
             leading: const Icon(Icons.settings, color: Colors.white),
             title: const Text(
@@ -360,7 +545,19 @@ class _MapScreenState extends State<MapScreen> {
             BatterySection(
               batteryLevel: batteryLevel,
               isActive: hasActiveReservation,
+              isWaiting: isInQueue,
+              queuePosition: queue.indexOf(currentUser) + 1,
+              usersInQueue: queue.isEmpty ? 3 : queue.length,
+              remainingMinutes: (queue.indexOf(currentUser) + 1) * 15,
             ),
+            const SizedBox(height: 30),
+            if (isInQueue) ...[
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _goToQueuePage,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
             const SizedBox(height: 50),
             ActionButtons(
               hasActiveReservation: hasActiveReservation,
@@ -384,13 +581,29 @@ class _MapScreenState extends State<MapScreen> {
                   horizontal: 32,
                   vertical: 16,
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 4,
+                child: const Text("Ver fila"),
               ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _leaveQueue,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text("Salir de la fila"),
+              ),
+              const SizedBox(height: 30),
+            ],
+            ActionButtons(
+              hasActiveReservation: hasActiveReservation,
+              onStop: hasActiveReservation ? _stopCharging : null,
+              onReserve: (!isInQueue && !hasActiveReservation)
+                  ? () async {
+                await _goToReservationPage();
+              }
+                  : null,
             ),
-            const SizedBox(height: 60),
+            const SizedBox(height: 50),
           ],
         ),
       ),
