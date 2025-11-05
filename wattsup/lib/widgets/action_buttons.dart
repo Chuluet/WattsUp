@@ -16,24 +16,45 @@ class ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        if (onReserve != null) // 👈 solo se muestra si no está en fila ni tiene reserva
-          ElevatedButton(
-            onPressed: onReserve,
+        if (onStop != null) ...[
+          // 🔴 Botón detener carga - Mismo estilo del primer código
+          ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFFF3F2F2),
+              foregroundColor: Colors.black,
+              minimumSize: const Size(260, 60),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
-            child: const Text("Reservar cargador"),
-          ),
-        if (onStop != null) // 👈 solo se muestra si hay una reserva activa
-          ElevatedButton(
             onPressed: onStop,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+            icon: const Icon(Icons.stop, size: 24),
+            label: const Text(
+              "Detener carga",
+              style: TextStyle(fontSize: 18),
             ),
-            child: const Text("Detener carga"),
           ),
+        ],
+        if (onReserve != null) ...[
+          const SizedBox(height: 16), // Espacio entre botones como en el primer código
+          // 🟩 Botón reservar cargador - Mismo estilo del primer código
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF3F2F2),
+              foregroundColor: Colors.green[700],
+              minimumSize: const Size(260, 60),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: onReserve,
+            icon: const Icon(Icons.ev_station, size: 24),
+            label: const Text(
+              "Reservar cargador",
+              style: TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
       ],
     );
   }
