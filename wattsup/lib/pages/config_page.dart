@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'help_page.dart'; // Importa la pantalla de ayuda
+import 'help/help_page.dart'; // Importa la pantalla de ayuda
 
 class ConfigPage extends StatelessWidget {
   const ConfigPage({super.key});

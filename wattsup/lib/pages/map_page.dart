@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:wattsup/pages/config_page.dart';
-import 'package:wattsup/pages/help_page.dart';
+import 'package:wattsup/pages/help/help_page.dart';
 import '../widgets/status_row.dart';
 import '../widgets/action_buttons.dart';
 import '../widgets/marker.dart';
